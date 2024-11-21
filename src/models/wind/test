@@ -1,0 +1,31 @@
+from Generator import Generator
+from WindTurbineBlade import WindTurbineBlade
+from Rotor import Rotor
+
+# Example usage
+if __name__ == "__main__":
+    # Create blades
+    blade1 = WindTurbineBlade(length=30)  # 30 meters
+    blades = [blade1, blade1, blade1]  # Assume identical blades for simplicity
+
+    # Create rotor
+    rotor = Rotor(blades)
+
+    # Define environmental parameters
+    air_density = 1.225  # kg/m³
+    wind_speed = 12  # m/s
+    rotor_efficiency = 0.4  # 40% efficiency
+
+    # Calculate mechanical energy from rotor
+    mechanical_energy = rotor.generated_energy(air_density, wind_speed, rotor_efficiency)
+
+    # Pass mechanical energy to generator
+    generator_efficiency = 0.9  # 90%
+    # Corrected argument name to match the constructor
+    generator = Generator(efficiency=generator_efficiency)
+    electrical_energy = generator.convert_energy(mechanical_energy)
+
+    # Display results
+    print(rotor)
+    print(f"Mechanical energy: {mechanical_energy:.2f} W")
+    print(f"Electrical energy: {electrical_energy:.2f} W")
