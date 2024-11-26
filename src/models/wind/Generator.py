@@ -1,3 +1,6 @@
+from .WindTurbineBlade import WindTurbineBlade
+from .Rotor import Rotor
+
 class Generator:
     """
     Class that represents an electrical generator that converts mechanical energy into electricity.
@@ -12,6 +15,18 @@ class Generator:
         if not (0 < efficiency <= 1):
             raise ValueError("Efficiency must be between 0 and 1.")
         self.efficiency = efficiency
+
+    def generate_energy(self, length_bade=30, air_density = 1.225, wind_speed = 3,rotor_efficiency = 0.4):
+        blade1 = WindTurbineBlade(length=length_bade)  
+        blades = [blade1, blade1, blade1] 
+        rotor = Rotor(blades)
+
+        mechanical_energy = rotor.generated_energy(air_density, wind_speed, rotor_efficiency)
+
+        return self.convert_energy(mechanical_energy*0.001)
+
+
+    
 
     def convert_energy(self, mechanical_energy: float) -> float:
         """

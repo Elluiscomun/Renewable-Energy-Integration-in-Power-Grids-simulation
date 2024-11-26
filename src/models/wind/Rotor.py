@@ -1,6 +1,6 @@
 from typing import List
 
-from WindTurbineBlade import WindTurbineBlade
+from .WindTurbineBlade import WindTurbineBlade
 
 
 class Rotor:

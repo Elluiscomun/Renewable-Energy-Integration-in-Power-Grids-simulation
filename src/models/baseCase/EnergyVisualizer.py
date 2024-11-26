@@ -43,7 +43,7 @@ class EnergyVisualizer:
         """
         root = tk.Tk()
         root.title("Simulación Energética")
-        root.geometry("1240x800")
+        root.geometry("1240x600")
 
         main_frame = tk.Frame(root)
         main_frame.pack(fill=tk.BOTH, expand=1)
@@ -57,7 +57,37 @@ class EnergyVisualizer:
         second_frame = tk.Frame(canvas)
         canvas.create_window((0, 0), window=second_frame, anchor="nw")
 
+        # Agregar los gráficos al segundo frame
         canvas_fig = FigureCanvasTkAgg(fig, second_frame)
         canvas_fig.get_tk_widget().pack()
 
+        # Actualizar la región de desplazamiento después de agregar el contenido
+        second_frame.update_idletasks()  # Asegurarse de que el contenido se haya cargado
+        canvas.configure(scrollregion=canvas.bbox("all"))  # Ajustar la región del scroll
+
         root.mainloop()
+
+# Ejemplo de uso
+if __name__ == "__main__":
+    # Crear los datos de ejemplo para los gráficos
+    import pandas as pd
+    import numpy as np
+    
+    # Crear datos simulados
+    semanas = np.arange(1, 11)
+    hogares = ['Hogar 1', 'Hogar 2', 'Hogar 3']
+    datos_consumo = np.random.rand(10, 3) * 100  # Simulación de consumo de energía
+    results = pd.DataFrame(datos_consumo, columns=hogares)
+    results.insert(0, 'Semana', semanas)
+
+    # Datos de costos simulados
+    cost_df = pd.DataFrame({
+        'Hogar': hogares,
+        'Costo Mensual ($)': np.random.rand(3) * 200
+    })
+    
+    # Crear gráficos
+    fig = EnergyVisualizer.create_plots(results, cost_df)
+    
+    # Mostrar la interfaz gráfica
+    EnergyVisualizer.display_gui(fig)
