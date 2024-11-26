@@ -1,8 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
 import matplotlib.pyplot as plt
-from EnergySystemSimulator import HybridEnergySystem
+import numpy as np
+from hybrid_energy_system import HybridEnergySystem
 from baseCase.EnergyVisualizer import EnergyVisualizer
+from wind.wind_visualizer import WindVisualizer
 
 
 class HybridEnergySystemGUI:
@@ -18,6 +20,7 @@ class HybridEnergySystemGUI:
         self.rotor_efficiency = tk.DoubleVar(value=0.4)
         self.air_density = tk.DoubleVar(value=1.225)
         self.blade_length = tk.DoubleVar(value=50.0)
+        self.number_wind_turbine = tk.IntVar(value=1)
 
         # Predefined file paths
         self.traditional_data_path_Ni = "src/models/baseCase/data_Ni.csv"
@@ -53,9 +56,14 @@ class HybridEnergySystemGUI:
         tk.Label(self.root, text="Blade Length (m):").grid(row=5, column=0, sticky="w")
         tk.Entry(self.root, textvariable=self.blade_length).grid(row=5, column=1)
 
+        tk.Label(self.root, text="Number Wind Turbine:").grid(row=6, column=0, sticky="w")
+        tk.Entry(self.root, textvariable=self.number_wind_turbine).grid(row=6, column=1)
+
         # Run and plot buttons
-        tk.Button(self.root, text="Run Simulation", command=self.run_simulation).grid(row=6, column=0, pady=10)
-        tk.Button(self.root, text="Plot Results", command=self.plot_results).grid(row=6, column=1, pady=10)
+        tk.Button(self.root, text="Run Simulation", command=self.run_simulation).grid(row=7, column=0, pady=10)
+        tk.Button(self.root, text="Plot Comsumption", command=self.plot_comsumption).grid(row=7, column=1, pady=10)
+        tk.Button(self.root, text="Plot Energy Generation", command=self.plot_energy_generation).grid(row=7, column=2, pady=10)
+        tk.Button(self.root, text="Plot Results", command=self.plot_results).grid(row=7, column=3, pady=10)
 
     def run_simulation(self):
         try:
@@ -67,7 +75,8 @@ class HybridEnergySystemGUI:
                 weeks=self.weeks.get(),
                 homes=self.homes.get(),
                 generator_efficiency=self.generator_efficiency.get(),
-                rotor_efficiency=self.rotor_efficiency.get()
+                rotor_efficiency=self.rotor_efficiency.get(),
+                number_wind_turbine=self.number_wind_turbine.get()
             )
 
             # Run the system
@@ -88,28 +97,65 @@ class HybridEnergySystemGUI:
             messagebox.showerror("Error", "No results to plot. Please run the simulation first.")
             return
 
-        # Opción 1: Gráfico simple con matplotlib
+        # Opción 1: Gráficos con subgráficas
         df = self.coverage_results
-        plt.figure(figsize=(10, 6))
+        
+        # Crear una figura con dos subgráficas
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
 
-        plt.plot(df["Semana"], df["Consumo Total (kWh)"], label="Consumo Total (kWh)", marker="o")
-        plt.plot(df["Semana"], df["Energía Generada (kWh)"], label="Energía Generada (kWh)", marker="x")
-        plt.bar(df["Semana"], df["Cobertura (%)"], alpha=0.4, label="Cobertura (%)")
+        # Primer gráfico: Consumo Total y Energía Generada
+        ax1.plot(df["Semana"], df["Consumo Total (kWh)"], label="Consumo Total (kWh)", marker="o")
+        ax1.plot(df["Semana"], df["Energía Generada (kWh)"], label="Energía Generada (kWh)", marker="x")
+        ax1.set_ylabel("Energía (kWh)")
+        ax1.set_title("Consumo y Generación de Energía")
+        ax1.legend()
+        ax1.grid(True)
 
-        plt.xlabel("Semana")
-        plt.ylabel("Energía (kWh) / Cobertura (%)")
-        plt.title("Resultados de Consumo y Generación de Energía")
-        plt.legend()
-        plt.grid(True)
+        # Segundo gráfico: Cobertura
+        ax2.bar(df["Semana"], df["Cobertura (%)"], alpha=0.4, label="Cobertura (%)")
+        ax2.set_xlabel("Semana")
+        ax2.set_ylabel("Cobertura (%)")
+        ax2.set_title("Cobertura por Semana")
+        ax2.legend()
+        ax2.grid(True)
+
+        # Ajustar el espaciado entre las subgráficas
+        plt.tight_layout()
+
+        # Mostrar los gráficos
         plt.show()
 
+    def plot_comsumption(self):
         # Opción 2: Gráficos detallados con EnergyVisualizer
         if self.cost_results is not None:
-           #self.energy_visualizer.create_plots(self.coverage_results, self.cost_results)
-            #self.energy_visualizer.display_gui()
             visualizer = EnergyVisualizer()
             plot_figure = visualizer.create_plots(self.hybrid_system.simulation_results, self.hybrid_system.cost_results)
             visualizer.display_gui(plot_figure)
+
+    def plot_energy_generation(self):
+        """
+        Grafica la energía generada semanalmente por las turbinas eólicas.
+        """
+        if self.coverage_results is None:
+            messagebox.showerror("Error", "No hay datos para graficar. Por favor, ejecuta la simulación primero.")
+            return
+
+        # Obtener los datos de energía generada
+        generated_energy = self.coverage_results["Energía Generada (kWh)"]
+        weeks = self.coverage_results["Semana"]
+
+        # Crear la gráfica
+        plt.figure(figsize=(10, 6))
+        plt.plot(weeks, generated_energy, label="Energía Generada (kWh)", marker="o", color="green")
+        plt.title("Energía Generada Semanalmente")
+        plt.xlabel("Semana")
+        plt.ylabel("Energía Generada (kWh)")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+
+        # Mostrar la gráfica
+        plt.show()
 
 
 if __name__ == "__main__":

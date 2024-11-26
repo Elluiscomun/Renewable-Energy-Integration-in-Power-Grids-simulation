@@ -6,7 +6,7 @@ from wind.Generator import Generator
 
 
 class HybridEnergySystem:
-    def __init__(self, traditional_data_path_Ni: str, traditional_data_path_Ri: str, wind_speed_data_path: str, weeks: int, homes: int, generator_efficiency: float, rotor_efficiency: float):
+    def __init__(self, traditional_data_path_Ni: str, traditional_data_path_Ri: str, wind_speed_data_path: str, weeks: int, homes: int, generator_efficiency: float, rotor_efficiency: float, number_wind_turbine = 1):
         """
         Initializes the hybrid energy system.
 
@@ -22,6 +22,7 @@ class HybridEnergySystem:
         self.data_ni = DataManager.shuffle_data(DataManager.read_csv(traditional_data_path_Ni))
         self.wind_speed_data = DataManager.shuffle_data(DataManager.read_csv(wind_speed_data_path))
         self.rotor_efficiency = rotor_efficiency
+        self.number_wind_turbine = number_wind_turbine
 
         # Create instances
         self.simulator = EnergyConsumptionSimulator(self.data_ri, self.data_ni, weeks, homes)
@@ -55,7 +56,7 @@ class HybridEnergySystem:
                 wind_speed=wind_speed,
                 rotor_efficiency=self.rotor_efficiency
             )
-            self.generated_energy.append(electrical_energy)
+            self.generated_energy.append(electrical_energy*self.number_wind_turbine)
 
         self.generated_energy = pd.Series(self.generated_energy, name="Energía Generada (kWh)")
 
@@ -67,7 +68,8 @@ class HybridEnergySystem:
         """
         if self.simulation_results is None or self.generated_energy is None:
             raise ValueError("Simulation has not been fully executed.")
-
+        print('Consumos Casas')
+        print(self.simulation_results.iloc[:, 1:])
         total_consumption = self.simulation_results.iloc[:, 1:].sum(axis=1)  # Total weekly consumption
         coverage = (self.generated_energy / total_consumption) * 100  # Coverage percentage
 
@@ -94,6 +96,10 @@ class HybridEnergySystem:
 
         print("Analyzing energy coverage...")
         coverage_results = self.analyze_coverage()
+
+        print("\nAnalysis Results:")
+        print(coverage_results)
+        
         return coverage_results
 
 
