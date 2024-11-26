@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./src/models/wind",
+        "./src/models/baseCase"
+    ]
+}
