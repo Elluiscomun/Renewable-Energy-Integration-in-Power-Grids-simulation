@@ -1,11 +1,12 @@
 import tkinter as tk
+import tkinter as ttk
 from tkinter import messagebox
 import matplotlib.pyplot as plt
 import numpy as np
 from hybrid_energy_system import HybridEnergySystem
 from baseCase.EnergyVisualizer import EnergyVisualizer
 from wind.wind_visualizer import WindVisualizer
-
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class HybridEnergySystemGUI:
     def __init__(self):
@@ -19,7 +20,7 @@ class HybridEnergySystemGUI:
         self.generator_efficiency = tk.DoubleVar(value=0.9)
         self.rotor_efficiency = tk.DoubleVar(value=0.4)
         self.air_density = tk.DoubleVar(value=1.225)
-        self.blade_length = tk.DoubleVar(value=50.0)
+        self.blade_length = tk.DoubleVar(value=30.0)
         self.number_wind_turbine = tk.IntVar(value=1)
 
         # Predefined file paths
@@ -92,38 +93,110 @@ class HybridEnergySystemGUI:
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred during the simulation: {e}")
 
+    def create_scrollable_canvas(self):
+        """Crea un canvas con scroll para incluir múltiples gráficos en una nueva ventana."""
+        # Crear una nueva ventana
+        new_window = tk.Toplevel(self.root)
+        new_window.title("Resultados de la Simulación")
+        new_window.geometry("800x600")  # Dimensiones iniciales de la ventana
+
+        # Crear el marco principal para el canvas y el scrollbar
+        frame = ttk.Frame(new_window)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        # Crear el canvas y el contenedor con scroll
+        canvas = tk.Canvas(frame)
+        scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=canvas.yview)
+        scrollable_frame = ttk.Frame(canvas)
+
+        # Configurar el área desplazable
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        # Insertar el marco en el canvas
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Ubicar los widgets en la ventana secundaria
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        return scrollable_frame
+
+    def plot_energy_consumption(self, ax, df):
+        """Subgráfica de consumo total y energía generada."""
+        ax.plot(df["Semana"], df["Consumo Total (kWh)"], label="Consumo Total (kWh)", marker="o")
+        ax.plot(df["Semana"], df["Energía Generada (kWh)"], label="Energía Generada (kWh)", marker="x")
+        ax.set_ylabel("Energía (kWh)")
+        ax.set_title("Consumo y Generación de Energía")
+        ax.legend()
+        ax.grid(True)
+
+    def plot_coverage(self, ax, df):
+        """Subgráfica de cobertura."""
+        ax.bar(df["Semana"], df["Cobertura (%)"], alpha=0.4, label="Cobertura (%)")
+        ax.set_ylabel("Cobertura (%)")
+        ax.set_title("Cobertura por Semana")
+        ax.legend()
+        ax.grid(True)
+
+    def plot_emissions_comparison(self, ax, df):
+        """Subgráfica de comparación de emisiones por escenario."""
+        wind_best_case = 9.7
+        wind_worst_case = 123.7
+        hydro_best_case = 3.7
+        hydro_worst_case = 237.0
+
+        total_consumption = df["Consumo Total (kWh)"]
+        wind_generated = df["Energía Generada (kWh)"]
+        hydro_generated = (total_consumption - wind_generated).clip(lower=0)
+
+        wind_emissions_best = wind_generated * wind_best_case
+        wind_emissions_worst = wind_generated * wind_worst_case
+        hydro_emissions_best = hydro_generated * hydro_best_case
+        hydro_emissions_worst = hydro_generated * hydro_worst_case
+
+        bar_width = 0.2
+        weeks = np.arange(len(df["Semana"]))
+
+        ax.bar(weeks - bar_width, wind_emissions_best, bar_width, label="Eólica (Mejor Escenario)", color="green")
+        ax.bar(weeks, hydro_emissions_best, bar_width, label="Hidroeléctrica (Mejor Escenario)", color="blue")
+        ax.bar(weeks + bar_width, wind_emissions_worst, bar_width, label="Eólica (Peor Escenario)", color="orange")
+        ax.bar(weeks + 2 * bar_width, hydro_emissions_worst, bar_width, label="Hidroeléctrica (Peor Escenario)", color="red")
+
+        ax.set_xlabel("Semana")
+        ax.set_ylabel("Emisiones Totales (gCO₂ eq.)")
+        ax.set_title("Comparación de Emisiones por Tipo de Energía y Escenario")
+        ax.set_xticks(weeks)
+        ax.set_xticklabels(df["Semana"])
+        ax.legend()
+        ax.grid(True, linestyle="--", alpha=0.6)
+
     def plot_results(self):
         if self.coverage_results is None:
             messagebox.showerror("Error", "No results to plot. Please run the simulation first.")
             return
 
-        # Opción 1: Gráficos con subgráficas
+        scrollable_frame = self.create_scrollable_canvas()
         df = self.coverage_results
-        
-        # Crear una figura con dos subgráficas
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
 
-        # Primer gráfico: Consumo Total y Energía Generada
-        ax1.plot(df["Semana"], df["Consumo Total (kWh)"], label="Consumo Total (kWh)", marker="o")
-        ax1.plot(df["Semana"], df["Energía Generada (kWh)"], label="Energía Generada (kWh)", marker="x")
-        ax1.set_ylabel("Energía (kWh)")
-        ax1.set_title("Consumo y Generación de Energía")
-        ax1.legend()
-        ax1.grid(True)
+        fig, axs = plt.subplots(3, 1, figsize=(12, 15))
 
-        # Segundo gráfico: Cobertura
-        ax2.bar(df["Semana"], df["Cobertura (%)"], alpha=0.4, label="Cobertura (%)")
-        ax2.set_xlabel("Semana")
-        ax2.set_ylabel("Cobertura (%)")
-        ax2.set_title("Cobertura por Semana")
-        ax2.legend()
-        ax2.grid(True)
+        # Generar los gráficos
+        self.plot_energy_consumption(axs[0], df)
+        self.plot_coverage(axs[1], df)
+        self.plot_emissions_comparison(axs[2], df)
 
-        # Ajustar el espaciado entre las subgráficas
+        # Ajustar diseño
         plt.tight_layout()
 
-        # Mostrar los gráficos
-        plt.show()
+        # Renderizar los gráficos en el canvas
+        canvas = FigureCanvasTkAgg(fig, master=scrollable_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
 
     def plot_comsumption(self):
         # Opción 2: Gráficos detallados con EnergyVisualizer
