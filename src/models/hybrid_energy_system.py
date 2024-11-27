@@ -49,14 +49,24 @@ class HybridEnergySystem:
         """
         self.generated_energy = []
 
-        for wind_speed in self.wind_speed_data[:len(self.simulation_results)]:
+        counter = 1
+        energy = []
+        for wind_speed in self.wind_speed_data[:len(self.simulation_results)*7]:
             electrical_energy = self.generator.generate_energy(
                 length_bade=blade_length,
                 air_density=air_density,
                 wind_speed=wind_speed,
                 rotor_efficiency=self.rotor_efficiency
             )
-            self.generated_energy.append(electrical_energy*self.number_wind_turbine)
+            energy.append(electrical_energy*self.number_wind_turbine)
+            if(counter>=7):
+                energy_adding = 0
+                for i in energy:
+                    energy_adding = energy_adding+i
+                self.generated_energy.append(energy_adding)
+                counter=0
+                energy=[]
+            counter = counter+1
 
         self.generated_energy = pd.Series(self.generated_energy, name="Energía Generada (kWh)")
 

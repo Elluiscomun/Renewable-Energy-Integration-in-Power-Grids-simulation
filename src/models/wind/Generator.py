@@ -23,10 +23,10 @@ class Generator:
 
         mechanical_energy = rotor.generated_energy(air_density, wind_speed, rotor_efficiency)
 
-        return self.convert_energy(mechanical_energy*0.001)
+        hours_by_day =24
+        watts_to_KWatts =mechanical_energy*0.001
 
-
-    
+        return self.convert_energy(watts_to_KWatts*hours_by_day)
 
     def convert_energy(self, mechanical_energy: float) -> float:
         """
