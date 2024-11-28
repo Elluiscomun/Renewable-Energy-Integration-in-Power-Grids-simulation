@@ -20,7 +20,7 @@ class HybridEnergySystemGUI:
         self.generator_efficiency = tk.DoubleVar(value=0.9)
         self.rotor_efficiency = tk.DoubleVar(value=0.4)
         self.air_density = tk.DoubleVar(value=1.225)
-        self.blade_length = tk.DoubleVar(value=30.0)
+        self.blade_length = tk.DoubleVar(value=10.0)
         self.number_wind_turbine = tk.IntVar(value=1)
 
         # Predefined file paths
