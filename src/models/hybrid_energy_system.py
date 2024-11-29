@@ -112,24 +112,3 @@ class HybridEnergySystem:
         
         return coverage_results
 
-
-# Example usage
-if __name__ == "__main__":
-    hybrid_system = HybridEnergySystem(
-        traditional_data_path_Ni="src/models/baseCase/data_Ni.csv",
-        traditional_data_path_Ri="src/models/baseCase/data_Ri.csv",
-        wind_speed_data_path="src/models/wind/Ni_wind.csv",
-        weeks=10,
-        homes=15,
-        generator_efficiency=0.9
-    )
-
-    # Simulation parameters
-    air_density = 1.225  # kg/m³
-    blade_length = 50.0  # meters
-
-    # Run the hybrid system
-    coverage_results = hybrid_system.run_system(air_density, blade_length)
-
-    print("\nAnalysis Results:")
-    print(coverage_results)
