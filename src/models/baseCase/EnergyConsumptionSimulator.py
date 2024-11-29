@@ -38,7 +38,7 @@ class EnergyConsumptionSimulator:
         return results
 
     @staticmethod
-    def calculate_costs(results, cost_per_kwh=12.08):
+    def calculate_costs(results, cost_per_kwh=373.92):
         """
         Calcula el promedio y costo mensual por hogar.
         """

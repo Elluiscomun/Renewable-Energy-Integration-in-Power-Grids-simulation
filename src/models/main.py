@@ -142,6 +142,25 @@ class HybridEnergySystemGUI:
         ax.legend()
         ax.grid(True)
 
+    def plot_costs_comparison(self, ax, df):
+        costs_df = df[["Costo modelo hibrido ($)", "Costo modelo tradicional ($)"]]
+
+        # Crear la figura
+        ax.axis("off")
+
+        # Crear la tabla
+        table = ax.table(
+            cellText=costs_df.values,  # Datos de las celdas
+            colLabels=costs_df.columns,  # Nombres de las columnas
+            loc="center",  # Posición
+            cellLoc="center",  # Centrar contenido
+        )
+
+        # Ajustar tamaño de fuente
+        table.auto_set_font_size(False)
+        table.set_fontsize(10)
+        table.auto_set_column_width(col=list(range(len(costs_df.columns))))
+
     def plot_emissions_comparison(self, ax, df):
         """Subgráfica de comparación de emisiones por escenario."""
         wind_best_case = 9.7
@@ -182,12 +201,13 @@ class HybridEnergySystemGUI:
         scrollable_frame = self.create_scrollable_canvas()
         df = self.coverage_results
 
-        fig, axs = plt.subplots(3, 1, figsize=(12, 15))
+        fig, axs = plt.subplots(4, 1, figsize=(12, 20))
 
         # Generar los gráficos
         self.plot_energy_consumption(axs[0], df)
         self.plot_coverage(axs[1], df)
         self.plot_emissions_comparison(axs[2], df)
+        self.plot_costs_comparison(axs[3],df)
 
         # Ajustar diseño
         plt.tight_layout()

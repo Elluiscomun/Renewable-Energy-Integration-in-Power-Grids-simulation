@@ -83,11 +83,18 @@ class HybridEnergySystem:
         total_consumption = self.simulation_results.iloc[:, 1:].sum(axis=1)  # Total weekly consumption
         coverage = (self.generated_energy / total_consumption) * 100  # Coverage percentage
 
+        # Calculate costs
+        traditional_consumption = total_consumption - self.generated_energy
+        cost = (traditional_consumption * 373.92) + (self.generated_energy * 170.62)
+
+
         comparison_df = pd.DataFrame({
             "Semana": range(1, len(self.generated_energy) + 1),
             "Consumo Total (kWh)": total_consumption,
             "Energía Generada (kWh)": self.generated_energy,
-            "Cobertura (%)": coverage
+            "Cobertura (%)": coverage,
+            "Costo modelo hibrido ($)": cost,
+            "Costo modelo tradicional ($)": total_consumption * 373.92
         })
         return comparison_df
 
