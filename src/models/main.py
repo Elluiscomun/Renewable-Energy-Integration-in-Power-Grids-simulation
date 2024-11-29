@@ -15,13 +15,13 @@ class HybridEnergySystemGUI:
         self.root.protocol("WM_DELETE_WINDOW", self.root.quit)
 
         # Input variables
-        self.weeks = tk.IntVar(value=10)
+        self.weeks = tk.IntVar(value=30)
         self.homes = tk.IntVar(value=15)
         self.generator_efficiency = tk.DoubleVar(value=0.9)
         self.rotor_efficiency = tk.DoubleVar(value=0.4)
         self.air_density = tk.DoubleVar(value=1.225)
-        self.blade_length = tk.DoubleVar(value=30.0)
-        self.number_wind_turbine = tk.IntVar(value=1)
+        self.blade_length = tk.DoubleVar(value=5.0)
+        self.number_wind_turbine = tk.IntVar(value=6)
 
         # Predefined file paths
         self.traditional_data_path_Ni = "src/models/baseCase/data_Ni.csv"
